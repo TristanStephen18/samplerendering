@@ -1,0 +1,49 @@
+name: Render Quote Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      quote:
+        description: "The quote text"
+        required: true
+        default: "Sample quote"
+      author:
+        description: "The author name"
+        required: true
+        default: "Sample author"
+      backgroundImage:
+        description: "Background image URL"
+        required: true
+        default: "https://res.cloudinary.com/dnxc1lw18/image/upload/v1761129894/kenburns/kenburns_c919c70c-2837-4737-b919-2174f6f129b2.jpg"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      # Create JSON props file dynamically from workflow inputs
+      - name: Generate input props
+        run: echo '${{ toJson(github.event.inputs) }}' > input-props.json
+
+      - name: Render Remotion Quote Composition
+        run: |
+          echo "Rendering Remotion video..."
+          npx remotion render Quote out/Quote.mp4 --props=input-props.json
+
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: Quote.mp4
+          path: out/Quote.mp4
